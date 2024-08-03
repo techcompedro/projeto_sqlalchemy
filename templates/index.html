@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3>Lista de contatos</h3>
+
+    <table class="highlight">
+      <thead>
+        <tr>
+            <th>Nome</th>
+            <th>email</th>
+            <th>celular</th>
+            <th>celular alternativo</th>
+            <th>tags</th>
+            <th>ações</th>
+        </tr>
+      </thead>
+    <tbody>
+    {% for contato in contatos %}
+    <tr>
+      <td>{{contato.nome}}</td>
+      <td>{{contato.email}}</td>
+      <td>{{contato.celular}}</td>
+      <td>{{contato.celular_alt}}</td>
+      <td>{{contato.tags}}</td>
+      <td>
+        {% from 'buttons.html' import buttons %}
+                    {{ buttons(contato) }}
+        
+      </td>
+    </tr>
+  </tbody>
+    {% endfor %}
+    </table>
+
+  
+  <div id="add-modal" class="modal">
+    <div class="modal-content">
+        <h4>Adicionar Contatos</h4>
+        <form action="/salvar_contato" method="post">
+            <div class="input-field">
+                <input type="text" id="nome" name="nome" required>
+                <label for="nome">nome</label>
+          </div>
+
+          <div class="input-field">
+            <input type="text" id="email" name="email" required>
+            <label for="email">email</label>
+          </div>
+
+            <div class="input-field">
+              <input type="text" id="celular" name="celular" required>
+              <label for="celular">celular</label>
+            </div>
+
+              <div class="input-field">
+                <input type="text" id="celular_alt" name="celular_alt">
+                <label for="celular_alt">celular alternativo</label>
+              </div>
+
+
+                <div class="input-field">
+                  <input type="text" id="tags" name="tags" required>
+                  <label for="tags">tags</label>
+                </div>
+
+        
+        <button type="submit" class="waves-effect waves-light btn">salvar</button>
+      </form>
+    </div>
+
+  </div>
+
+{% endblock  %}
