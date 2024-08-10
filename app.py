@@ -1,23 +1,67 @@
-from flask import Flask, render_template, request, redirect
-from database import Contatos, session
+from flask import Flask, render_template, request, redirect, session as flask_session
+from database import Contatos, User, session
+from werkzeug.security import generate_password_hash, check_password_hash
+import os 
 
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24)
+
+@app.route('/register', methods=['GET','POST'])
+def register():
+    if  request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        hashed_password = generate_password_hash(password)
+        
+        novo_user = User(username=username, password=hashed_password)
+        session.add(novo_user)
+        session.commit()
+        return redirect('/login')    
+    return render_template('register.html')
+
+
+@app.route('/login', methods=['GET','POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = session.query(User).filter_by(username=username).first()
+     
+        if user and check_password_hash(user.password, password):
+            flask_session['user_id'] = user.id
+            return redirect('/')
+        else:
+            error = "login falhou! verifique suas credenciais ou"
+            register_link = "<a href='/register'>registre-se aqui</a>."
+            return render_template('login.html', error=error + register_link)
+    
+    return render_template('login.html')
+
+
 
 @app.route('/')
-def index():
-    contatos = session.query(Contatos).all()
+def index(): 
+    if 'user_id' not in flask_session:
+        return redirect('/login')
+
+    user_id = flask_session['user_id']
+    contatos = session.query(Contatos).filter_by(user_id=user_id).all()
     return render_template('index.html', contatos=contatos)
 
 
 @app.route('/salvar_contato', methods=['POST'])
 def salvar_contato():
+    if 'user_id' not in flask_session:
+        return redirect('/login')
+    user_id = flask_session['user_id']
     novo_contato = Contatos(
         nome = request.form['nome'],
         email = request.form['email'],
         celular = request.form['celular'],
         celular_alt = request.form.get('celular_alt', ''),
         tags = request.form['tags'],
+        user_id=user_id
     )
     session.add(novo_contato)
     session.commit()
